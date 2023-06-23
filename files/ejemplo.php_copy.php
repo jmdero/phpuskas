@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Libraries;
@@ -23,6 +22,7 @@ use ErrorException;
 
 class DeutscheBahn extends Provider
 {
+
     protected string $basketId;
 
     protected array $basketDataCurl;
@@ -36,13 +36,15 @@ class DeutscheBahn extends Provider
     protected string $name='DeutscheBahn';
 
     protected function postConstructor()
-
     {
+
       $this->auth=new DeutscheBahnAuth ( $this->name,$this->dataRoute) ;
-}
-    public function createTicket()
 
+    }
+
+    public function createTicket()
     {
+
         global $VSesiones;
 
         global $saveLogDB;
@@ -70,10 +72,12 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump($arrayResponse);
-}
-    public function deleteBasketItems()
 
+    }
+
+    public function deleteBasketItems()
     {
+
         global $saveLogDB;
 
         ($this->expiredAuthTime()===true)?$this->connectAuth():'';
@@ -99,7 +103,9 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump($arrayResponse);
-}
+
+    }
+
     /**
 
      * Busca los viajes entre dos estaciones.
@@ -113,8 +119,8 @@ class DeutscheBahn extends Provider
      */
 
     public function findTrips(int $startStationId,int $endStationId,string $tripDate)
-
      {
+
         global $saveLogDB;
 
         parent::checkAndConnect();
@@ -126,8 +132,8 @@ class DeutscheBahn extends Provider
         $DBCurl->defaultCurlHeader($this->auth,true);
 
         $postfields='
-
         {
+
           "dateTime": "'.$tripDate.'",
 
           "originId": "'.$startStationId.'",
@@ -149,10 +155,12 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump(array_keys($arrayResponse['tripsCollections'][0]));
-}
-    public function getBasket()
 
+    }
+
+    public function getBasket()
     {
+
         global $saveLogDB;
 
         ($this->expiredAuthTime()===true)?$this->connectAuth():'';
@@ -172,10 +180,12 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump(array_keys($arrayResponse));
-}
-    public function generateBasketId()
 
+    }
+
+    public function generateBasketId()
     {
+
         global $VSesiones;
 
         global $saveLogDB;
@@ -191,8 +201,8 @@ class DeutscheBahn extends Provider
         // "basketId":"", //Aquí va si tenemos una id previa para añadir más ofertas.
 
         $postfields='
-
         {
+
             "offerBundleId":"'.$this->offerBundleId.'",
 
             "selectedOfferIds":["'.implode(',',$this->offersIds).'"]
@@ -214,7 +224,9 @@ class DeutscheBahn extends Provider
         $this->basketId=$arrayResponse['basketId'];
 
         // var_dump($arrayResponse['serviceItems'][0]['id']);
-}
+
+    }
+
     /**
 
      * Busca un booking por su id.
@@ -222,8 +234,8 @@ class DeutscheBahn extends Provider
      */
 
     public function getBooking()
-
      {
+
         global $saveLogDB;
 
         global $VSesiones;
@@ -249,7 +261,9 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump(array_keys($arrayResponse));
-}
+
+    }
+
     /**
 
      * Obtiene la información de un parámetro proporcionada por la propia Api.
@@ -259,8 +273,8 @@ class DeutscheBahn extends Provider
      */
 
     public function getMasterData(string $parameterName)
-
      {
+
         parent::checkAndConnect();
 
         $dataCurl=parent::setEnviorentmentProperties('masterDataCurl');
@@ -290,7 +304,9 @@ class DeutscheBahn extends Provider
         $response=$DBCurl->executeCurl();
 
         var_dump(json_decode($response,true));
-}
+
+    }
+
     /**
 
      * Obtiene las ofertas según consulta.
@@ -304,8 +320,8 @@ class DeutscheBahn extends Provider
      */
 
     public function getOffers(int $startStationId, int $endStationId, string $tripDate)
-
      {
+
         global $saveLogDB;
 
         parent::checkAndConnect();
@@ -317,22 +333,24 @@ class DeutscheBahn extends Provider
         $DBCurl->defaultCurlHeader($this->auth,true);
 
         $postfields='
-
         {
+
             "passengerData": 
-
         {
+
               "passengers": [
 
                 
-
               {
+
                   "age": 25,
 
                   "passengerType": "ERWACHSENER"
 
                  
-}
+
+                }
+
               ]
 
             },
@@ -340,11 +358,11 @@ class DeutscheBahn extends Provider
             "comfortClass": "KLASSE_2",
 
             "tripSearchOutward": 
-
             {
+
              "tripSearch": 
-
             {
+
                "dateTime": "2022-10-12T00:00:00",
 
                "originId": "008000105",
@@ -352,7 +370,11 @@ class DeutscheBahn extends Provider
                "destinationId": "008000261",
 
                "products": 9
-}}
+
+             }
+
+            }
+
          }';
 
         $DBCurl->setProperties(['url'=>$dataCurl['url'],'method'=>'POST','postfields'=>$postfields]);
@@ -378,7 +400,9 @@ class DeutscheBahn extends Provider
         $this->offerBundleId=$arrayResponse['offerBundleContainers'][0]['offerBundles'][0]['id'];
 
         $this->offersIds=array_column($arrayResponse['offerBundleContainers'][0]['offerBundles'][0]['offers'],'id');
-}
+
+    }
+
     /**
 
      * Procesa una reserva.
@@ -386,8 +410,8 @@ class DeutscheBahn extends Provider
      */
 
     public function processBooking()
-
      {
+
         global $saveLogDB;
 
         global $VSesiones;
@@ -405,29 +429,31 @@ class DeutscheBahn extends Provider
         $postfields='
 
         
-
         {
+
           "paymentData": 
-
         {
+
             "paymentType": "partnerzahlung",
 
             "orderer": 
-
             {
+
               "firstName": "Erika",
 
               "lastName": "Musterfrau",
 
               "email": "maximilian.mustermann@test.de"
-}
+
+            }
+
           },
 
           "customers": [
 
             
-
           {
+
               "formOfAddress": "HR",
 
               "firstName": "Max",
@@ -435,12 +461,14 @@ class DeutscheBahn extends Provider
               "lastName": "Mustermann",
 
               "email": "test@db.de"
-}
+
+            }
+
           ],
 
           "ticketHolder": 
-
           {
+
             "formOfAddress": "HR",
 
             "firstName": "Max",
@@ -468,10 +496,12 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         $VSesiones["busquedaTR"]['DeutscheBahBookingId']=$arrayResponse['booking']['bookingId'];
-}
-    public function refund()
 
+    }
+
+    public function refund()
     {
+
         global $VSesiones;
 
         global $saveLogDB;
@@ -485,8 +515,8 @@ class DeutscheBahn extends Provider
         $header=$this->defaultCurlHeader(true);
 
         $postfields='
-
         {
+
           "bookingId":"'.$VSesiones["busquedaTR"]['DeutscheBahBookingId'].'",
 
           "cancellationOptionId":"efafd795-f05e-5911-a234-4aa6217a8e3f",
@@ -506,7 +536,9 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump($arrayResponse);
-}
+
+    }
+
     /**
 
      * Crea un booking nuevo.
@@ -514,8 +546,8 @@ class DeutscheBahn extends Provider
      */
 
     public function setBooking()
-
      {
+
         global $saveLogDB;
 
         global $VSesiones;
@@ -541,12 +573,14 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         $VSesiones["busquedaTR"]['DeutscheBahInitialBookingId']=$arrayResponse['initialBookingId'];
-}
+
+    }
+
    /*
 
     public function getLocations()
-
    {
+
        global $saveLogDB;
 
        parent::checkAndConnect();
@@ -566,10 +600,12 @@ class DeutscheBahn extends Provider
        $DBCurl->checkCurlError($response);
 
        return json_decode($response,true);
-}
-    public function bestPriceOffer(int $startStationId, int $endStationId, string $tripDate)
 
+    }
+
+    public function bestPriceOffer(int $startStationId, int $endStationId, string $tripDate)
     {
+
         parent::checkAndConnect();
 
         $dataCurl=parent::setEnviorentmentProperties('bestPriceDataCurl');
@@ -579,16 +615,16 @@ class DeutscheBahn extends Provider
         $DBCurl->defaultCurlHeader($this->auth,true);
 
         $postfields='
-
         {
+
           "passengerData": 
-
         {
+
             "passengers": [
 
               
-
             {
+
                 "age": 25,
 
                 "passengerType": "ERWACHSENER",
@@ -596,14 +632,18 @@ class DeutscheBahn extends Provider
                 "reductions": [
 
                   
-
                 {
+
                     "comfortClass": "KLASSE_2",
 
                     "reductionType": "BAHNCARD50"
-}
+
+                  }
+
                 ]
-}
+
+              }
+
             ]
 
           },
@@ -611,11 +651,11 @@ class DeutscheBahn extends Provider
           "comfortClass": "KLASSE_2",
 
           "tripSearchOutward": 
-
           {
+
            "tripSearch": 
-
           {
+
              "dateTime": "'.$tripDate.'",
 
              "originId": "'.$startStationId.'",
@@ -623,7 +663,11 @@ class DeutscheBahn extends Provider
              "destinationId": "'.$endStationId.'",
 
              "products": 9
-}}
+
+           }
+
+          }
+
         }';
 
         $DBCurl->setProperties(['url'=>$dataCurl['url'],'method'=>'POST','postfields'=>$postfields]);
@@ -635,6 +679,10 @@ class DeutscheBahn extends Provider
         $arrayResponse=json_decode($response,true);
 
         var_dump($arrayResponse);
-}
+
+    }
+
     */ 
+
 }
+

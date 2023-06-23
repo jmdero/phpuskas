@@ -55,7 +55,7 @@ class PathProcessor {
 
             $new_line                  = $this->line_spaces( $line, $key_line );
 
-            extract ( $this->check_end_line ( $new_line, $key_line, $add_lines, $php_eol ) );
+            $new_line                  = $this->check_end_line ( $new_line, $key_line);
 
             $new_lines[]               = $new_line.PHP_EOL;
 
@@ -127,11 +127,9 @@ class PathProcessor {
         return $line;
     }
 
-    private function check_end_line ( string $new_line, int $key_line, array $add_lines, bool $php_eol ) : array
+    private function check_end_line ( string $new_line, int $key_line) : string
     {
         if ( substr ( $new_line, -1) == "{" ){
-                
-            $new_line              = substr ( $new_line, 0, -1);
 
             $add_blanks            = '';
 
@@ -145,30 +143,30 @@ class PathProcessor {
                 }
             }
 
-            $add_lines[]           = $add_blanks.'{';
-
-            $php_eol               = false;
+            $new_line                = substr ( $new_line, 0, -1).PHP_EOL.$add_blanks.substr ( $new_line, -1);
         }
 
-        return compact ( 'new_line', 'add_lines', 'php_eol' );
+        return $new_line;
     }
     
     private function set_new_file ()
     {
         $file_content                   = '';
 
-        $not_eols                      = array ( '{', '}');
+        //$not_eols                      = array ( '{', '}');
 
         foreach ( $this->lines as $line)
         {
+            /*
             if ( ( strpos ( $line, '}' ) !== false ) and ( str_replace ( [' ', PHP_EOL],['',''], $line ) === '}' ) )
             {
                 $line                   = str_replace ( [' ', PHP_EOL],['',''], $line );
             }
             
             $file_content               .= ( in_array ( $line, $not_eols ) ) ? '' : PHP_EOL;
+            */
 
-            $file_content               .= $line;
+            $file_content               .= $line.PHP_EOL;
         }
 
         $file                           = fopen ( $this->path . "_copy." . $this->extension, "w");
