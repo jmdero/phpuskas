@@ -11,11 +11,6 @@ class PathProcessor {
 
     private array   $start_blancks       = array ();
 
-    /**
-     * Procesa todo el archivo y los hace una copia formateada.
-     * @param   string  $path   Dirección donde está el archivo.
-     * @return  bool   
-     */
     public function process_path ( string $path ): bool
     {
         $this->path                    = $path;
