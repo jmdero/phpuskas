@@ -1,6 +1,6 @@
 <?php
 
-include_once ( __DIR__."/config/globals.php");
+include_once ( __DIR__."/config/globals.php" );
 
 require_once ( __DIR__."/app/PathProcessor.php" );
 

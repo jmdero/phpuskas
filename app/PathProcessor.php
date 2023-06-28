@@ -2,32 +2,42 @@
 
 namespace App;
 
-class PathProcessor {
-    private string  $path                = "";
+class PathProcessor
+{
+    private string  $path                   = "";
 
-    private string  $extension           = ""; 
+    private string  $extension              = ""; 
 
-    private array   $lines               = array (); 
+    private array   $lines                  = array (); 
 
-    private array   $start_blancks       = array ();
+    private array   $start_blancks          = array ();
 
     public function process_path ( string $path ): bool
     {
-        $this->path                    = $path;
+        $this->path                         = $path;
 
-        $this->extension               = pathinfo($this->path, PATHINFO_EXTENSION);
+        $this->extension                    = pathinfo($this->path, PATHINFO_EXTENSION);
 
-        $processed                     = false;
+        $processed                          = false;
 
-        if ( ! file_exists ($path) ) { return $processed; }
+        if ( ! file_exists ($path) )
+        {
+            return $processed;
+        }
 
-        $file_content                   = file_get_contents ( $this->path, true );
+        $file_content                       = file_get_contents ( $this->path, true );
 
-        if ( ! in_array ( $this->extension, json_decode ( FILE_VALID_EXTENSIONS ) ) ){ return $processed; }
-        
-        $this->lines                   = explode ( PHP_EOL, $file_content );
+        if ( ! in_array ( $this->extension, json_decode ( FILE_VALID_EXTENSIONS ) ) )
+        {
+            return $processed;
+        }
 
-        if ( count ( $this->lines ) == 0 ) { return $processed; }
+        $this->lines                        = explode ( PHP_EOL, $file_content );
+
+        if ( count ( $this->lines ) == 0 )
+        {
+            return $processed;
+        }
 
         $this->process_lines();
 
@@ -38,11 +48,11 @@ class PathProcessor {
 
     private function process_lines ()
     {
-        $new_lines                    = array ();
+        $new_lines                          = array ();
 
-        $add_lines                    = array ();
+        $add_lines                          = array ();
 
-        $php_eol                      = true;
+        $php_eol                            = true;
 
         foreach ( $this->lines as $key_line => $line)
         {
@@ -52,40 +62,47 @@ class PathProcessor {
 
                 continue;
             }
+            $new_line                       = $this->line_spaces( $line, $key_line );
 
-            $new_line                  = $this->line_spaces( $line, $key_line );
+            $new_line                       = $this->check_end_line ( $new_line, $key_line);
 
-            $new_line                  = $this->check_end_line ( $new_line, $key_line);
+            $next_line                      = $key_line + 1 ;
 
-            $new_lines[]               = $new_line.PHP_EOL;
+            $open_type                      = substr ( str_replace ( [PHP_EOL," "],["",""], $new_line ), -1 );
+
+            $close_type                     = substr (  str_replace ( [PHP_EOL," "],["",""], $this->lines[$next_line] ), -1 );
+
+            if ( ( array_key_exists ( $next_line, $this->lines ) )  and ( ( $close_type != "}" ) and ( $open_type != "{" ) ) )
+            {
+                $new_line                       .= PHP_EOL; 
+            }
+
+            $new_lines[]                    = $new_line.PHP_EOL;
 
             if ( !empty ( $add_lines ) )
             {
                 foreach ( $add_lines as $add )
                 {
-                    $new_lines[]       = $add;
+                    $new_lines[]            = $add;
                 }
-
-                $add_lines             = array ();
+                $add_lines                  = array ();
             }
-
-            $php_eol                   = false;
+            $php_eol                        = false;
         }
-
-        $this->lines                   = $new_lines;
+        $this->lines                        = $new_lines;
     }
 
     private function line_spaces (string $line, int $key_line ) : string
     {
-        $line                          = ( substr( $line, -1 ) === " " ) ? substr( $line, 0, -1 ) : $line ;
+        $line                               = ( substr( $line, -1 ) === " " ) ? substr( $line, 0, -1 ) : $line ;
 
-        $characters                    = str_split( $line );
+        $characters                         = str_split( $line );
 
-        $counter_back                  = 1;
+        $counter_back                       = 1;
 
-        $start_text                    = false;
+        $start_text                         = false;
         
-        $counter_start_blanck          = 0;
+        $counter_start_blanck               = 0;
 
         foreach ( $characters as $key_character => $character )
         {
@@ -93,7 +110,7 @@ class PathProcessor {
             {
                 if ( $start_text )
                 {
-                    $key_back                = ( $key_character - $counter_back );
+                    $key_back               = ( $key_character - $counter_back );
 
                     if ( array_key_exists( $key_back, $characters ) and ( ( $characters[$key_back] == " " ) or ( $characters[$key_back] == "\t" ) ) )
                     {
@@ -102,7 +119,7 @@ class PathProcessor {
                             unset ( $characters[$key_character] );
                     }
                     else{
-                            $counter_back       = 1;
+                            $counter_back   = 1;
                     }
                 } 
                 else{
@@ -111,19 +128,18 @@ class PathProcessor {
             }
             else
             {
-                $start_text             = true;
+                $start_text                 = true;
             }
         }
 
-        $characters                     = array_values ( $characters );
+        $characters                         = array_values ( $characters );
 
-        $line                           = implode( "", $characters );
+        $line                               = implode( "", $characters );
 
         if ( $counter_start_blanck > 0 )
         {
-            $this->start_blancks[$key_line]      = $counter_start_blanck;
+            $this->start_blancks[$key_line] = $counter_start_blanck;
         }
-
         return $line;
     }
 
@@ -131,45 +147,32 @@ class PathProcessor {
     {
         if ( substr ( $new_line, -1) == "{" ){
 
-            $add_blanks            = '';
+            $add_blanks                     = '';
 
-            $prev_key              = ( $key_line - 1 );
+            $prev_key                       = ( $key_line - 1 );
             
             if ( array_key_exists ( $prev_key, $this->start_blancks ) )
             {
                 for ( $i = 0; $i < $this->start_blancks[$prev_key] ; $i ++ ) { 
                    
-                    $add_blanks   .= ' ';
+                    $add_blanks             .= ' ';
                 }
             }
-
-            $new_line                = substr ( $new_line, 0, -1).PHP_EOL.$add_blanks.substr ( $new_line, -1);
+            $new_line                       = substr ( $new_line, 0, -1).PHP_EOL.$add_blanks.substr ( $new_line, -1);
         }
-
         return $new_line;
     }
     
     private function set_new_file ()
     {
-        $file_content                   = '';
-
-        //$not_eols                      = array ( '{', '}');
+        $file_content                       = '';
 
         foreach ( $this->lines as $line)
         {
-            /*
-            if ( ( strpos ( $line, '}' ) !== false ) and ( str_replace ( [' ', PHP_EOL],['',''], $line ) === '}' ) )
-            {
-                $line                   = str_replace ( [' ', PHP_EOL],['',''], $line );
-            }
-            
-            $file_content               .= ( in_array ( $line, $not_eols ) ) ? '' : PHP_EOL;
-            */
-
-            $file_content               .= $line.PHP_EOL;
+            $file_content                   .= $line;
         }
 
-        $file                           = fopen ( $this->path . "_copy." . $this->extension, "w");
+        $file                               = fopen ( $this->path . "_copy." . $this->extension, "w");
 
         fwrite( $file, $file_content );
 

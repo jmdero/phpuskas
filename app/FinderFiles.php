@@ -2,7 +2,8 @@
 
 namespace App;
 
-class FinderFiles {
+class FinderFiles
+{
     private string  $directory;
     private array   $valid_extensions;
 
