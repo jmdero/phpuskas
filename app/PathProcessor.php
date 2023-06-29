@@ -6,11 +6,15 @@ class PathProcessor
 {
     private string  $path                   = "";
 
-    private string  $extension              = ""; 
+    private string  $extension              = "";
 
+    private array  $line_characters        = array ();
+    
     private array   $lines                  = array (); 
 
     private array   $start_blancks          = array ();
+
+    private array   $blanck_setters         = array ();
 
     public function process_path ( string $path ): bool
     {
@@ -52,8 +56,6 @@ class PathProcessor
 
         $add_lines                          = array ();
 
-        $php_eol                            = true;
-
         foreach ( $this->lines as $key_line => $line)
         {
             if ( $line === "" )
@@ -62,7 +64,7 @@ class PathProcessor
 
                 continue;
             }
-            $new_line                       = $this->line_spaces( $line, $key_line );
+            $new_line                       = $this->clean_line_spaces( $line, $key_line );
 
             $new_line                       = $this->check_end_line ( $new_line, $key_line);
 
@@ -70,11 +72,16 @@ class PathProcessor
 
             $open_type                      = substr ( str_replace ( [PHP_EOL," "],["",""], $new_line ), -1 );
 
-            $close_type                     = substr (  str_replace ( [PHP_EOL," "],["",""], $this->lines[$next_line] ), -1 );
+            $close_type                     = "";
+
+            if ( array_key_exists ( $next_line, $this->lines ) )
+            {
+                $close_type                 = substr (  str_replace ( [PHP_EOL," "],["",""], $this->lines[$next_line] ), -1 );
+            }
 
             if ( ( array_key_exists ( $next_line, $this->lines ) )  and ( ( $close_type != "}" ) and ( $open_type != "{" ) ) )
             {
-                $new_line                       .= PHP_EOL; 
+                $new_line                   .= PHP_EOL; 
             }
 
             $new_lines[]                    = $new_line.PHP_EOL;
@@ -87,16 +94,15 @@ class PathProcessor
                 }
                 $add_lines                  = array ();
             }
-            $php_eol                        = false;
         }
         $this->lines                        = $new_lines;
     }
 
-    private function line_spaces (string $line, int $key_line ) : string
+    private function clean_line_spaces (string $line, int $key_line ) : string
     {
         $line                               = ( substr( $line, -1 ) === " " ) ? substr( $line, 0, -1 ) : $line ;
 
-        $characters                         = str_split( $line );
+        $this->line_characters              = str_split( $line );
 
         $counter_back                       = 1;
 
@@ -104,7 +110,7 @@ class PathProcessor
         
         $counter_start_blanck               = 0;
 
-        foreach ( $characters as $key_character => $character )
+        foreach ( $this->line_characters as $key_character => $character )
         {
             if ( $character === " " )
             {
@@ -112,11 +118,11 @@ class PathProcessor
                 {
                     $key_back               = ( $key_character - $counter_back );
 
-                    if ( array_key_exists( $key_back, $characters ) and ( ( $characters[$key_back] == " " ) or ( $characters[$key_back] == "\t" ) ) )
+                    if ( array_key_exists( $key_back, $this->line_characters ) and ( ( $this->line_characters[$key_back] == " " ) or ( $this->line_characters[$key_back] == "\t" ) ) )
                     {
                             $counter_back++;
 
-                            unset ( $characters[$key_character] );
+                            unset ( $this->line_characters[$key_character] );
                     }
                     else{
                             $counter_back   = 1;
@@ -132,9 +138,9 @@ class PathProcessor
             }
         }
 
-        $characters                         = array_values ( $characters );
+        $this->line_characters              = array_values ( $this->line_characters );
 
-        $line                               = implode( "", $characters );
+        $line                               = implode( "", $this->line_characters );
 
         if ( $counter_start_blanck > 0 )
         {
