@@ -102,9 +102,6 @@ class path_processor
                 }
             }
 
-
-            /*
-
             $new_line                       = $this->clean_line_spaces ( $line, $key_line );
 
             $new_line                       = $this->check_end_line ( $new_line, $key_line );
@@ -134,11 +131,7 @@ class path_processor
                     $new_lines[]            = $add;
                 }
                 $add_lines                  = array ();
-            }*/
-            
-           // $this->file_structure       = $language_checker->check_structure ( $line, $this->file_structure );
-
-            //$this->file_structure           = $language_checker->check_end ( $line, $this->file_structure );
+            }
         }
         $this->lines                        = $new_lines;
     }
