@@ -77,7 +77,7 @@ class path_processor
                 continue;
             }
 
-            $characters                                 = set_characters ( $line );
+            $characters                                 = get_characters ( $line );
 
             if ( count ( $characters ) > 0 )
             {
@@ -92,12 +92,12 @@ class path_processor
 
                     if ( ( $character === '(' ) || ( $character === ")" ) )
                     {
-                        $this->is_conditional                                 = !$this->is_conditional;
+                        $this->is_conditional                                = !$this->is_conditional;
                     }
 
                     if ( ( !$this->is_conditional ) && ( !in_array ( "true", array_values ( $this->is_string ) ) ) && ( ( $character === "<" ) || ( $character === "?" ) ) )
                     {
-                            $this->file_structure            = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
+                        $this->file_structure                                  = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
                     }
                 }
             }
@@ -145,7 +145,7 @@ class path_processor
 
     private function clean_line_spaces ( string $line, int $key_line ) : string
     {
-        $this->line_characters                = set_characters ( $line );
+        $this->line_characters              = get_characters ( $line );
 
         $counter_back                       = 1;
 
