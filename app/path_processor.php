@@ -7,41 +7,41 @@ use app\language_checker;
 
 class path_processor
 {
-    private string  $path                   = "";
+    private string  $path                              = "";
 
-    private string  $extension              = "";
+    private string  $extension                         = "";
 
-    private array  $line_characters         = array ();
+    private array  $line_characters                    = array ();
     
-    private array   $lines                  = array (); 
+    private array   $lines                             = array (); 
 
-    private array   $start_blancks          = array ();
+    private array   $start_blancks                     = array ();
 
-    private array   $blanck_setters         = array ();
+    private array   $blanck_setters                    = array ();
 
-    private array   $file_structure         = array ();
+    private array   $file_structure                     = array ();
 
     public function process_path ( string $path ): bool
     {
-        $this->path                         = $path;
+        $this->path                                    = $path;
 
-        $this->extension                    = pathinfo ( $this->path, PATHINFO_EXTENSION );
+        $this->extension                               = pathinfo ( $this->path, PATHINFO_EXTENSION );
 
-        $processed                          = false;
+        $processed                                     = false;
 
         if ( ! file_exists ( $path ) )
         {
             return $processed;
         }
 
-        $file_content                       = file_get_contents ( $this->path, true );
+        $file_content                                   = file_get_contents ( $this->path, true );
 
         if ( ! in_array ( $this->extension, json_decode ( FILE_VALID_EXTENSIONS ) ) )
         {
             return $processed;
         }
 
-        $this->lines                        = explode ( PHP_EOL, $file_content );
+        $this->lines                                    = explode ( PHP_EOL, $file_content );
 
         if ( count ( $this->lines ) == 0 )
         {
@@ -57,12 +57,11 @@ class path_processor
 
     private function process_lines ()
     {
-        $new_lines                          = array ();
+        $new_lines                                      = array ();
 
-        $add_lines                          = array ();
+        $add_lines                                      = array ();
 
-        $language_checker                   = new language_checker ();
-
+        $language_checker                               = new language_checker ();
 
         foreach ( $this->lines as $key_line => $line )
         {
@@ -73,7 +72,19 @@ class path_processor
                 continue;
             }
 
-            $this->file_structure           = $language_checker->check_start ( $line, $this->file_structure );
+            $characters                                 = set_characters ( $line );
+
+            if ( count ( $characters ) > 0 )
+            {
+                foreach ( $characters as $key_character => $character )
+                {
+                    if ( ( $character === "<" ) || ( $character === "?" ) )
+                    {
+                        $this->file_structure            = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
+                    }
+                }
+            }
+
 
             /*
 
@@ -108,6 +119,8 @@ class path_processor
                 $add_lines                  = array ();
             }*/
             
+           // $this->file_structure       = $language_checker->check_structure ( $line, $this->file_structure );
+
             //$this->file_structure           = $language_checker->check_end ( $line, $this->file_structure );
         }
         $this->lines                        = $new_lines;
@@ -115,9 +128,7 @@ class path_processor
 
     private function clean_line_spaces ( string $line, int $key_line ) : string
     {
-        $line                               = ( substr( $line, -1 ) === " " ) ? substr( $line, 0, -1 ) : $line ;
-
-        $this->line_characters              = str_split( $line );
+        $this->line_characters                = set_characters ( $line );
 
         $counter_back                       = 1;
 
@@ -163,7 +174,7 @@ class path_processor
         }
         return $line;
     }
-
+    
     private function check_end_line ( string $new_line, int $key_line ) : string
     {
         if ( substr ( $new_line, -1) == "{" ){

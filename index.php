@@ -2,6 +2,8 @@
 
 include_once ( __DIR__."/config/globals.php" );
 
+include_once ( __DIR__."/functions/text_reader.php" );
+
 require_once ( __DIR__."/app/path_processor.php" );
 
 use app\path_processor;

@@ -8,6 +8,8 @@ $languages                      = array
 
         "start_confirm"         => "php",
 
+        "add_confirm"           => true,
+
         "end"                   => "?>"
     ),
 
