@@ -6,8 +6,6 @@ class language_checker
 {
     public      array   $languages                     = array ();
 
-    private     array   $is_string                     = array ( "simple" => false, "double" => false );
-
     private     string  $default_language              = "html";
 
     private     string  $first_html                     = '';
@@ -31,103 +29,101 @@ class language_checker
 
     public function check_structure ( string $line, array $file_structure ) : array
     {
-        $character                                            = substr ( $line, 0, 1);
-
         $type                                                 = ( ( substr ( $line, 0, 1 ) === "<" ) && ( substr ( $line, 1, 1 ) !== "/" ) ) ? "start" : "end";
 
-        if ( !in_array ( "true", array_values ( $this->is_string ) ) )
-        {
-            $finded                                            = false;
-            
-            foreach ( $this->languages as $language => $language_options )
+        $finded                                                = false;
+        
+        foreach ( $this->languages as $language => $language_options )
+        {   
+            if ( substr( $line, 0, strlen ( $language_options[$type] ) ) === $language_options[$type] )
             {
-                if ( strpos ( $line, $language_options[$type] ) !== false )
+                $exists                                        = ( end ( $file_structure ) === $language );
+                if ( ( ( $type === "start" ) && ( $exists ) ) || ( ( $type === "end" ) && ( !$exists ) ) ) { break; }
+
+                $confirm                                        = true;
+                
+                if ( ( array_key_exists( $type . "_confirm", $language_options ) ) && ( strpos ( $line, $language_options[$type . "_confirm"] ) === false ))
                 {
-                    $exists                                    = ( end ( $file_structure ) === $language );
-                    if ( ( ( $type === "start" ) && ( $exists ) ) || ( ( $type === "end" ) && ( !$exists ) ) ) { break; }
+                    $confirm                                    = false;
+                }
 
-                    $confirm                                    = true;
-                    
-                    if ( ( array_key_exists( $type . "_confirm", $language_options ) ) && ( strpos ( $line, $language_options[$type . "_confirm"] ) === false ))
-                    {
-                        $confirm                                = false;
-                    }
+                if ( !$confirm) { break; }
 
-                    if ( !$confirm) { break; }
+                $is_possible                                   = true;
+                
+                if ( ( array_key_exists( $type . "_confirm_not", $language_options ) ) && ( strpos ( $line, $language_options[$type . "_confirm_not"] ) !== false ) ) 
+                {
+                    $is_possible                               = false;
+                }
 
-                    $is_possible                               = true;
-                    
-                    if ( ( array_key_exists( $type . "_confirm_not", $language_options ) ) && ( strpos ( $line, $language_options[$type . "_confirm_not"] ) !== false ) ) 
-                    {
-                        $is_possible                           = false;
-                    }
+                if ( !$is_possible) { break; }
+                
+                echo $type.": ".$language.PHP_EOL;
 
-                    if ( !$is_possible) { break; }
-                    
-                    //echo $type.": ".$language.PHP_EOL;
+                ( $type === "start" ) ?  array_push ( $file_structure, $language ) : array_pop ( $file_structure );
 
-                    ( $type === "start" ) ?  array_push ( $file_structure, $language ) : array_pop ( $file_structure );
+                $finded                                         = true;
+                
+                break;
+            }
+        }
 
-                    $finded                                      = true;
+        $condition                                             = ( $type === "start" ) ? ( end ( $file_structure ) !== $this->default_language ) : ( end ( $file_structure ) === $this->default_language );
+
+        if ( ( !$finded ) && ( $condition ) )
+        {
+            $add                                               = true;
+
+            $ends                                              = array_column ( $this->languages, "end" );
+
+            foreach ( $ends as $end )
+            {
+                if ( substr( $line, 0, strlen ( $end ) ) === $end  )
+                {
+                    $add                                       = false;
                     
                     break;
                 }
             }
 
-            $condition                                          = ( $type === "start" ) ? ( end ( $file_structure ) !== $this->default_language ) : ( end ( $file_structure ) === $this->default_language );
-            
-            if ( ( !$finded ) && ( $condition ) )
+            if ( $add )
             {
-                $add                                            = true;
-
-                $ends                                           = array_column ( $this->languages, "end" );
-
-                foreach ( $ends as $end )
+                if ( $type === "start" )
                 {
-                    if ( strpos ( $line, $end ) !== false )
+                    echo $type . ": ".$this->default_language.PHP_EOL;
+
+                    $word                                     = strtok ( $line, ' ');
+                    
+                    if ( strpos ( $word, ">" ) !==false )
                     {
-                        $add                                    = false;
-                        
-                        break;
-                    }
-                }
-
-                if ( $add )
-                {
-                    if ( $type === "start" )
-                    {
-                        //echo $type . ": ".$this->default_language.PHP_EOL;
-
-                        $this->first_html                        = str_replace ( ["<", ">"], ["", ""], strtok( $line, " " ) );
-
-                        $this->counter_first_html++;
-
-                        array_push ( $file_structure, $this->default_language );
+                        $this->first_html                          = trim( substr ( $word, 1, ( strpos( $word, ">" ) - 1 ) ) );
                     }
                     else{
+                        $this->first_html                          = str_replace ( ["<", ">"], ["", ""], $word);
+                    }
 
-                        if ( strpos ( $line, "</" . $this->first_html . ">"  ) !== false )
-                        {
-                            $this->counter_first_html --;
-                        }
-                        
-                        if ( $this->counter_first_html == 0 )
-                        {
-                            //echo $type . ": ".$this->default_language.PHP_EOL;
+                    $this->counter_first_html++;
 
-                            $this->first_html                     = "";
+                    array_push ( $file_structure, $this->default_language );
+                }
+                else{
+                    
+                    if ( substr( $line, 0, ( strlen ( $this->first_html ) +3 ) ) === "</" . $this->first_html . ">"  )
+                    {
+                        $this->counter_first_html --;
+                    }
+                    
+                    
+                    if ( $this->counter_first_html == 0 )
+                    {
+                        echo $type . ": ".$this->default_language.PHP_EOL;
 
-                            array_pop ( $file_structure );
-                        }
+                        $this->first_html                        = "";
+
+                        array_pop ( $file_structure );
                     }
                 }
             }
-        } 
-        else if ( ( $character === '"' ) || ( $character === "'" ) )
-        {
-            $type_string                                         = ( $character === "'" ) ? "simple" : "double";
-
-            $this->is_string[$type_string]                       = !$this->is_string[$type_string];
         }
 
         return $file_structure;
