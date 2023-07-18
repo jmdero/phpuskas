@@ -91,7 +91,7 @@ class language_checker
                 if ( $type === "start" )
                 {
                     echo $type . ": ".$this->default_language.PHP_EOL;
-
+                    
                     $word                                     = strtok ( $line, ' ');
                     
                     if ( strpos ( $word, ">" ) !==false )
@@ -112,7 +112,6 @@ class language_checker
                     {
                         $this->counter_first_html --;
                     }
-                    
                     
                     if ( $this->counter_first_html == 0 )
                     {

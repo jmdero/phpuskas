@@ -21,7 +21,9 @@ class path_processor
 
     private array   $file_structure                     = array ();
 
-    private     array   $is_string                     = array ( "simple" => false, "double" => false );
+    private array   $is_string                         = array ( "simple" => false, "double" => false );
+
+    private bool    $is_conditional                    = false;
 
 
     public function process_path ( string $path ): bool
@@ -88,7 +90,12 @@ class path_processor
                         $this->is_string[$type_string]                       = !$this->is_string[$type_string];
                     }
 
-                    if ( !in_array ( "true", array_values ( $this->is_string ) ) && ( ( $character === "<" ) || ( $character === "?" ) ) )
+                    if ( ( $character === '(' ) || ( $character === ")" ) )
+                    {
+                        $this->is_conditional                                 = !$this->is_conditional;
+                    }
+
+                    if ( ( !$this->is_conditional ) && ( !in_array ( "true", array_values ( $this->is_string ) ) ) && ( ( $character === "<" ) || ( $character === "?" ) ) )
                     {
                             $this->file_structure            = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
                     }
