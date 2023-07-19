@@ -191,7 +191,7 @@ class DeutscheBahn extends Provider
 
         $this->getDatabaseAuth ();
 
-        ( empty ( $basketDataCurl )) ?parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
+        ( empty ( $basketDataCurl )) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
 
         $header = $this->defaultCurlHeader ();
 
@@ -214,7 +214,7 @@ class DeutscheBahn extends Provider
 
         parent :: checkAndConnect ();
 
-        ( empty ( $basketDataCurl )) ?parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
+        ( empty ( $basketDataCurl )) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
 
         $DBCurl = new DeutscheBahnCurl ( $this->name );
 

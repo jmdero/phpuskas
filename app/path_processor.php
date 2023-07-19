@@ -134,7 +134,7 @@ class path_processor
 
                         $pass                           = ( !$pass ) ? ( ( array_key_exists ( $character, $exceptions_spaces ) ) && ( in_array ( $characters[( $key_character + 1 )], $exceptions_spaces[$character] ) ) ) : $pass;
 
-                        $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( array_key_exists ( ( $key_character + 1 ), $characters ) ) && ( $characters[( $key_character + 1 )] === "p" ) ) ? false : $pass;
+                        $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( substr ( $new_line, ( $key_character + 1 ) , 3 ) === "php" ) ) ? false : $pass;
                         
                         if ( $pass )
                         {
