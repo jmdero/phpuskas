@@ -8,9 +8,7 @@ require_once dirname ( __DIR__ ) . "/DeutscheBahn/DeutscheBahnAuth.php";
 
 require_once dirname ( __DIR__ ) . "/DeutscheBahn/DeutscheBahnOffers.php";
 
-?>
-
-<script type = "text/javascript">
+?><script type = "text/javascript">
 
   console . log ( "test" );
 
@@ -31,13 +29,9 @@ require_once dirname ( __DIR__ ) . "/DeutscheBahn/DeutscheBahnOffers.php";
 
   <p> Test </p>
 
-  <div>
+  <div><?php echo "nada";?></div>
 
-    <?php
-
-    ?>
-
-  </div>
+ 
 
 </div>
 

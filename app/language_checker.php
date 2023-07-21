@@ -38,6 +38,7 @@ class language_checker
             if ( substr( $line, 0, strlen ( $language_options[$type] ) ) === $language_options[$type] )
             {
                 $exists                                        = ( end ( $file_structure ) === $language );
+                
                 if ( ( ( $type === "start" ) && ( $exists ) ) || ( ( $type === "end" ) && ( !$exists ) ) ) { break; }
 
                 $confirm                                        = true;
@@ -58,7 +59,7 @@ class language_checker
 
                 if ( !$is_possible) { break; }
                 
-                //echo $type.": ".$language.PHP_EOL;
+                echo $type.": ".$language.PHP_EOL;
 
                 ( $type === "start" ) ?  array_push ( $file_structure, $language ) : array_pop ( $file_structure );
 
@@ -68,7 +69,7 @@ class language_checker
             }
         }
 
-        $condition                                             = ( $type === "start" ) ? ( end ( $file_structure ) !== $this->default_language ) : ( end ( $file_structure ) === $this->default_language );
+       $condition                                             = ( $type === "start" ) ? true : ( end ( $file_structure ) === $this->default_language );
 
         if ( ( !$finded ) && ( $condition ) )
         {
@@ -90,34 +91,42 @@ class language_checker
             {
                 if ( $type === "start" )
                 {
-                    //echo $type . ": ".$this->default_language.PHP_EOL;
-                    
-                    $word                                     = strtok ( $line, ' ');
-                    
+                    $word                                          = strtok ( $line, ' ');
+
                     if ( strpos ( $word, ">" ) !==false )
                     {
-                        $this->first_html                          = trim( substr ( $word, 1, ( strpos( $word, ">" ) - 1 ) ) );
+                        $check_first_html                          = trim( substr ( $word, 1, ( strpos( $word, ">" ) - 1 ) ) );
                     }
                     else{
-                        $this->first_html                          = str_replace ( ["<", ">"], ["", ""], $word);
+                        $check_first_html                          = str_replace ( ["<", ">"], ["", ""], $word);
                     }
 
-                    $this->counter_first_html++;
+                    if ( $this->first_html === "" )
+                    {
+                        $this->first_html                          = $check_first_html;
 
-                    array_push ( $file_structure, $this->default_language );
+                        $this->counter_first_html++;
+
+                        array_push ( $file_structure, $this->default_language );
+
+                        echo $type . ": ".$this->default_language.PHP_EOL;
+                    }
+                    else if ( $check_first_html === $this->first_html )
+                    {
+                        $this->counter_first_html++;
+                    }
                 }
                 else{
-                    
                     if ( substr( $line, 0, ( strlen ( $this->first_html ) +3 ) ) === "</" . $this->first_html . ">"  )
                     {
                         $this->counter_first_html --;
                     }
-                    
+
                     if ( $this->counter_first_html == 0 )
                     {
-                        //echo $type . ": ".$this->default_language.PHP_EOL;
+                        echo $type . ": ".$this->default_language.PHP_EOL;
 
-                        $this->first_html                        = "";
+                        $this->first_html                              = "";
 
                         array_pop ( $file_structure );
                     }
