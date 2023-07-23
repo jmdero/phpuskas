@@ -87,9 +87,7 @@ class path_processor
 
                 continue;
             }
-
-            $line_add_space_position                    = 0;
-
+            
             $new_line                                   = $this->clean_line_spaces ( $line, $key_line );
 
             $characters                                 = get_characters ( $new_line );
