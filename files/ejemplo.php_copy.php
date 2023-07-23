@@ -162,7 +162,7 @@ class DeutscheBahn extends Provider
 
         }';
 
-        $DBCurl->setProperties ( ['postfields' =>$postfields, 'url' =>$dataCurl['url'], 'method' =>'POST'] );
+        $DBCurl->setProperties ( ['postfields' => $postfields, 'url' => $dataCurl['url'], 'method' => 'POST'] );
 
         $DBCurl->setCurlOptions ();
 
@@ -174,7 +174,7 @@ class DeutscheBahn extends Provider
 
         $arrayResponse = json_decode ( $response, true );
 
-        var_dump ( array_keys ( $arrayResponse['tripsCollections'][0] ));
+        var_dump ( array_keys ( $arrayResponse['tripsCollections'][0] ) );
     }
 
     public function getBasket () 
@@ -185,7 +185,7 @@ class DeutscheBahn extends Provider
 
         $this->getDatabaseAuth ();
 
-        ( empty ( $basketDataCurl )) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
+        ( empty ( $basketDataCurl ) ) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
 
         $header = $this->defaultCurlHeader ();
 
@@ -197,7 +197,7 @@ class DeutscheBahn extends Provider
 
         $arrayResponse = json_decode ( $response, true );
 
-        var_dump ( array_keys ( $arrayResponse ));
+        var_dump ( array_keys ( $arrayResponse ) );
     }
 
     public function generateBasketId () 
@@ -208,7 +208,7 @@ class DeutscheBahn extends Provider
 
         parent :: checkAndConnect ();
 
-        ( empty ( $basketDataCurl )) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
+        ( empty ( $basketDataCurl ) ) ? parent :: setEnviorentmentProperties ( 'basketDataCurl' ) : '';
 
         $DBCurl = new DeutscheBahnCurl ( $this->name );
 
@@ -224,7 +224,7 @@ class DeutscheBahn extends Provider
 
         }';
 
-        $DBCurl->setProperties ( ['url' =>$this->basketDataCurl['url'], 'method' =>'POST', 'postfields' =>$postfields] );
+        $DBCurl->setProperties ( ['url' => $this->basketDataCurl['url'], 'method' => 'POST', 'postfields' => $postfields] );
 
         $DBCurl->setCurlOptions ();
 
@@ -273,7 +273,7 @@ class DeutscheBahn extends Provider
 
         $arrayResponse = json_decode ( $response, true );
 
-        var_dump ( array_keys ( $arrayResponse ));
+        var_dump ( array_keys ( $arrayResponse ) );
     }
 
     /**
@@ -308,13 +308,13 @@ class DeutscheBahn extends Provider
 
         $method = 'GET';
 
-        $DBCurl->setProperties ( compact ( 'header', 'url', 'method' ));
+        $DBCurl->setProperties ( compact ( 'header', 'url', 'method' ) );
 
         $DBCurl->setCurlOptions ();
 
         $response = $DBCurl->executeCurl ();
 
-        var_dump ( json_decode ( $response, true ));
+        var_dump ( json_decode ( $response, true ) );
     }
 
     /**
@@ -378,7 +378,7 @@ class DeutscheBahn extends Provider
 
          }';
 
-        $DBCurl->setProperties ( ['url' =>$dataCurl['url'], 'method' =>'POST', 'postfields' =>$postfields] );
+        $DBCurl->setProperties ( ['url' => $dataCurl['url'], 'method' => 'POST', 'postfields' => $postfields] );
 
         $DBCurl->setCurlOptions ();
 
@@ -547,7 +547,7 @@ class DeutscheBahn extends Provider
 
         $DBCurl->defaultCurlHeader ( $this->auth );
 
-        $DBCurl->setProperties ( ['url' =>$dataCurl['url'], 'method' =>'POST'] );
+        $DBCurl->setProperties ( ['url' => $dataCurl['url'], 'method' => 'POST'] );
 
         $DBCurl->setCurlOptions ();
 
@@ -576,7 +576,7 @@ class DeutscheBahn extends Provider
 
        $DBCurl->defaultCurlHeader ( $this->auth );
 
-       $DBCurl->setProperties ( ['url' =>$dataCurl['url'] . '?matchValue=Munich', 'method' =>'GET'] );
+       $DBCurl->setProperties ( ['url' => $dataCurl['url'] . '?matchValue=Munich', 'method' => 'GET'] );
 
        $DBCurl->setCurlOptions ();
 
@@ -643,7 +643,7 @@ class DeutscheBahn extends Provider
 
         }';
 
-        $DBCurl->setProperties ( ['url' =>$dataCurl['url'], 'method' =>'POST', 'postfields' =>$postfields] );
+        $DBCurl->setProperties ( ['url' => $dataCurl['url'], 'method' => 'POST', 'postfields' => $postfields] );
 
         $DBCurl->setCurlOptions ();
 

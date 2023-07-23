@@ -66,12 +66,14 @@ class path_processor
 
         $space_makers                                   = array ( "(", ")", ".", "=", ":", ",", "?" );
 
-        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", "." );
+        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", ".", "-", "+"  );
 
         $exceptions_spaces                              = array
         (
-            ")"                                         => array ( ":", "=", "." )
+            ")"                                         => array ( ":", "=", ".", ")" ),
         );
+
+        $special_add_spaces                             = array ( "=>"  );
 
         $is_conditional                                 = false;
 
@@ -85,6 +87,8 @@ class path_processor
 
                 continue;
             }
+
+            $line_add_space_position                    = 0;
 
             $new_line                                   = $this->clean_line_spaces ( $line, $key_line );
 
@@ -115,13 +119,71 @@ class path_processor
                         $this->file_structure            = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
                     }
 
-                    if ( ( $is_not_string ) && ( in_array ( $character, $space_makers ) ) )
+                    $special_position                   = false;
+
+                    $special_type                       = '';
+
+                    if ( count ( $special_add_spaces ) > 0 )
+                    {
+                        foreach ( $special_add_spaces as $special )
+                        {
+                            $special_position           = strpos ( $special, $character );
+
+                            if ( is_int ( $special_position ) )
+                            {
+                                $matches                = 0;
+
+                                if ( $special_position === 0)
+                                {
+                                    for ( $i = 0; $i < strlen ( $special ) ; $i ++ )
+                                    {
+                                        if ( substr ( $new_line, $key_character + $i + $total_spaces, 1 ) === $special[$i] )
+                                        {
+                                            $matches ++;
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if ( $special_position === ( strlen ( $special ) - 1 ) )
+                                {   
+                                    $minus                = 0;
+
+                                    for ( $i = ( strlen ( $special ) - 1 ) ; $i >= 0 ; $i -- )
+                                    {   
+                                        if ( substr ( $new_line,( ( $key_character + $total_spaces ) - $minus ), 1 ) === $special[$i] )
+                                        {
+                                            $matches ++;
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                        $minus++;
+                                    }
+                                }
+
+                                if ( $matches === strlen ( $special ) )
+                                {
+                                    $special_type        = ( $special_position == ( strlen ( $special ) - 1 ) ) ? "end": "start";
+                                    break;
+                                }
+                            }   
+                        }
+                    }
+
+                    if ( ( $is_not_string ) && ( ( in_array ( $character, $space_makers ) ) || ( $special_type !== "" ) ) )
                     {
                         $change_line                    = substr ( $new_line, 0 , ( $key_character + $total_spaces ) );
 
                         $spaces_counter                 = 0;
 
-                        if ( ( $character !== "," ) && ( array_key_exists ( ( $key_character - 1 ), $characters ) ) && ( !in_array ( $characters[( $key_character - 1 )], $not_space_makers ) ) )
+                        $pass                           = ( $character !== "," ) && ( array_key_exists ( ( $key_character - 1 ), $characters ) ) && ( !in_array ( $characters[( $key_character - 1 )], $not_space_makers ) );
+
+                        $pass                           = ( ( !$pass ) && ( $special_type == "start" ) ) ? true : $pass;
+
+                        if ( $pass )
                         {
                             $change_line                .= " ";
 
@@ -135,6 +197,8 @@ class path_processor
                         $pass                           = ( !$pass ) ? ( ( array_key_exists ( $character, $exceptions_spaces ) ) && ( in_array ( $characters[( $key_character + 1 )], $exceptions_spaces[$character] ) ) ) : $pass;
 
                         $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( substr ( $new_line, ( $key_character + 1 ) , 3 ) === "php" ) ) ? false : $pass;
+
+                        $pass                           = ( ( !$pass ) && ( $special_type == "end" ) ) ? true : $pass;
                         
                         if ( $pass )
                         {
@@ -241,7 +305,8 @@ class path_processor
             
             if ( array_key_exists ( $prev_key, $this->start_blancks ) )
             {
-                for ( $i = 0; $i < $this->start_blancks[$prev_key] ; $i ++ ) { 
+                for ( $i = 0; $i < $this->start_blancks[$prev_key] ; $i ++ )
+                { 
                    
                     $add_blanks                         .= ' ';
                 }
