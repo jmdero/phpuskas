@@ -21,7 +21,6 @@ class path_processor
 
     private array   $file_structure                      = array ();
 
-    
     public function process_path ( string $path ): bool
     {
         $this->path                                     = $path;
@@ -66,7 +65,7 @@ class path_processor
 
         $space_makers                                   = array ( "(", ")", ".", "=", ":", ",", "?" );
 
-        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", ".", "-", "+"  );
+        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", ".", "-", "+" );
 
         $exceptions_spaces                              = array
         (
@@ -79,9 +78,17 @@ class path_processor
 
         $is_string                                      = array ( "simple" => false, "double" => false );
 
+        $max_equal_position                             = 0;
+
+        $equal_lines                                    = array ();
+
+        $equals_counter                                 = 0;
+
+        $eol_counter                                    = 0;
+
         foreach ( $this->lines as $key_line => $line )
         {
-            if ( $line === "" )
+            if ( ( $line === " " ) && ( $line === "\s" )  )
             {
                 unset( $this->lines[$key_line] );
 
@@ -92,9 +99,20 @@ class path_processor
 
             $characters                                 = get_characters ( $new_line );
 
+            if ( count ( array_unique ( $characters ) ) == 0 )
+            {
+                unset( $this->lines[$key_line] );
+
+                continue;
+            }
+
+            $changed_structure                          = false;
+
             if ( count ( $characters ) > 0 )
             {   
                 $total_spaces                           = 0;
+
+                $equals_counter                         = 0;
 
                 foreach ( $characters as $key_character => $character )
                 {
@@ -115,6 +133,12 @@ class path_processor
                     if ( ( !$is_conditional ) && ( $is_not_string )  && ( ( $character === "<" ) || ( $character === "?" ) ) )
                     {
                         $this->file_structure            = $language_checker->check_structure ( substr($line,$key_character), $this->file_structure );
+
+                        $changed_structure              = true;
+                    }
+                    else if ( ( !$is_conditional ) && ( $is_not_string ) && ( $character === "=" ) )
+                    {
+                        $equals_counter++;
                     }
 
                     $special_position                   = false;
@@ -190,11 +214,13 @@ class path_processor
 
                         $change_line                    .= $character;
 
-                        $pass                           = ( ( array_key_exists ( ( $key_character + 1 ), $characters ) ) && ( !in_array ( $characters[( $key_character + 1 )], $not_space_makers ) ) );
+                        $next_key                       = ( $key_character + 1 );
 
-                        $pass                           = ( !$pass ) ? ( ( array_key_exists ( $character, $exceptions_spaces ) ) && ( in_array ( $characters[( $key_character + 1 )], $exceptions_spaces[$character] ) ) ) : $pass;
+                        $pass                           = ( ( array_key_exists ( $next_key, $characters ) ) && ( !in_array ( $characters[$next_key], $not_space_makers ) ) );
 
-                        $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( substr ( $new_line, ( $key_character + 1 ) , 3 ) === "php" ) ) ? false : $pass;
+                        $pass                           = ( !$pass ) ? ( ( array_key_exists ( $character, $exceptions_spaces ) ) && ( array_key_exists ( $next_key, $exceptions_spaces ) ) && ( in_array ( $characters[$next_key], $exceptions_spaces[$character] ) ) ) : $pass;
+
+                        $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( substr ( $new_line, $next_key , 3 ) === "php" ) ) ? false : $pass;
 
                         $pass                           = ( ( !$pass ) && ( $special_type == "end" ) ) ? true : $pass;
                         
@@ -220,6 +246,8 @@ class path_processor
 
             $close_type                                 = "";
 
+            $add_line                                   = false;            
+
             if ( array_key_exists ( $next_line, $this->lines ) )
             {
                 $close_type                             = substr (  str_replace ( [ PHP_EOL, " " ], [ "", "" ], $this->lines[$next_line] ), -1 );
@@ -227,10 +255,22 @@ class path_processor
 
             if ( ( array_key_exists ( $next_line, $this->lines ) )  and ( ( $close_type != "}" ) and ( $open_type != "{" ) ) )
             {
-                $new_line                               .= PHP_EOL; 
+               $new_lines[]                              = "".PHP_EOL;
             }
 
-            $new_lines[]                                = $new_line.PHP_EOL;
+            if ( ( $equals_counter === 1 ) && ( !$changed_structure ) )
+            {
+                $equal_lines[]                          = $new_line;
+
+                $max_equal_position                     = ( strpos ( $new_line, "=" ) > $max_equal_position ) ? strpos ( $new_line, "=" ) : $max_equal_position;
+            }
+
+            $new_lines[]                                = $new_line;
+
+            if ( ( array_key_exists ( ( $key_line + 1 ), $this->lines ) ) && ( $this->lines[( $key_line + 1 )] !== PHP_EOL ) )
+            {
+                $new_lines[]                                = PHP_EOL;
+            }
 
             if ( !empty ( $add_lines ) )
             {
@@ -241,7 +281,36 @@ class path_processor
                 $add_lines                              = array ();
             }
         }
+        
         $this->lines                                    = $new_lines;
+
+        if ( ( $max_equal_position > 0 ) && ( count ( $equal_lines ) > 0 ) )
+        {   
+            foreach ( $this->lines as $key_line => $line )
+            {
+                if ( in_array ( $line, $equal_lines ) )
+                {
+                    $equal_position                     = strpos ( $line, "=" );
+
+                    if ( ( $line[( $equal_position - 1 )] == "." ) || ( $line[( $equal_position - 1 )] == "+" ) )
+                    {
+                        $equal_position --;
+                    }
+
+                    $new_line                           = substr ( $line, 0, $equal_position );
+
+                    $max_line                           = ( $max_equal_position - strlen ( $new_line ) );
+                                        
+                    for ( $i = 0; $i < $max_line; $i++ )
+                    { 
+                        $new_line                       .= " ";
+                    }
+                    $new_line                           .= substr ( $line, $equal_position, strlen ( $line ) );
+
+                    $this->lines[$key_line]              = $new_line;
+                }
+            }
+        }
     }
 
     private function clean_line_spaces ( string $line, int $key_line ) : string
@@ -309,6 +378,7 @@ class path_processor
                     $add_blanks                         .= ' ';
                 }
             }
+
             $new_line                                   = substr ( $new_line, 0, -1) . PHP_EOL . $add_blanks . substr ( $new_line, -1 );
         }
         return $new_line;

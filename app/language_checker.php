@@ -59,8 +59,6 @@ class language_checker
 
                 if ( !$is_possible) { break; }
                 
-                echo $type.": ".$language.PHP_EOL;
-
                 ( $type === "start" ) ?  array_push ( $file_structure, $language ) : array_pop ( $file_structure );
 
                 $finded                                         = true;
@@ -108,8 +106,6 @@ class language_checker
                         $this->counter_first_html++;
 
                         array_push ( $file_structure, $this->default_language );
-
-                        echo $type . ": ".$this->default_language.PHP_EOL;
                     }
                     else if ( $check_first_html === $this->first_html )
                     {
@@ -124,8 +120,6 @@ class language_checker
 
                     if ( $this->counter_first_html == 0 )
                     {
-                        echo $type . ": ".$this->default_language.PHP_EOL;
-
                         $this->first_html                              = "";
 
                         array_pop ( $file_structure );
