@@ -65,14 +65,14 @@ class path_processor
 
         $space_makers                                   = array ( "(", ")", ".", "=", ":", ",", "?" );
 
-        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", ".", "-", "+" );
+        $not_space_makers                               = array ( " ", ";", "=", "<", ">", "(", ")", ":", ".", "-", "+", "\s" );
 
         $exceptions_spaces                              = array
         (
             ")"                                         => array ( ":", "=", ".", ")" ),
         );
 
-        $special_add_spaces                             = array ( "=>"  );
+        $special_add_spaces                             = array ( "=>" );
 
         $is_conditional                                 = false;
 
@@ -123,9 +123,14 @@ class path_processor
                         $is_string[$type_string]        = !$is_string[$type_string];
                     }
 
-                    if ( ( $character === '(' ) || ( $character === ")" ) )
+                    if ( $character === '(' )
                     {
-                        $is_conditional                 = !$is_conditional;
+                        $is_conditional                 = ( strpos ( $new_line, "=" ) < $key_character )? $is_conditional : true;
+                    }
+
+                    if ( $character === ')' )
+                    {
+                        $is_conditional                 = false;
                     }
 
                     $is_not_string                      = ( !in_array ( "true", array_values ( $is_string ) ) );
@@ -205,6 +210,8 @@ class path_processor
 
                         $pass                           = ( ( !$pass ) && ( $special_type == "start" ) ) ? true : $pass;
 
+                        $pass                           = ( ( $pass ) && ( array_key_exists ( ( $key_character - 1 ), $characters ) ) && ( $characters[( $key_character - 1 )] === " " ) ) ? false : $pass;
+
                         if ( $pass )
                         {
                             $change_line                .= " ";
@@ -223,6 +230,8 @@ class path_processor
                         $pass                           =  ( ( $pass ) && ( $character === "?" ) &&  ( substr ( $new_line, $next_key , 3 ) === "php" ) ) ? false : $pass;
 
                         $pass                           = ( ( !$pass ) && ( $special_type == "end" ) ) ? true : $pass;
+
+                        $pass                           = ( ( $pass ) && ( array_key_exists ( ( $key_character + 1 ), $characters ) ) && ( $characters[( $key_character + 1 )] === " " ) ) ? false : $pass;
                         
                         if ( $pass )
                         {
@@ -299,12 +308,13 @@ class path_processor
 
                     $new_line                           = substr ( $line, 0, $equal_position );
 
-                    $max_line                           = ( $max_equal_position - strlen ( $new_line ) );
-                                        
+                    $max_line                           = ( $max_equal_position - $equal_position );
+
                     for ( $i = 0; $i < $max_line; $i++ )
                     { 
                         $new_line                       .= " ";
                     }
+
                     $new_line                           .= substr ( $line, $equal_position, strlen ( $line ) );
 
                     $this->lines[$key_line]              = $new_line;
